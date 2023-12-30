@@ -2,15 +2,20 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from textblob import TextBlob
+# from textblob import TextBlob
 
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 import string
+import os
+import openai
+# client = OpenAI()
 
-
-
+from openai import OpenAI
+openai.api_key = os.getenv("OPENAI_API_KEY")
+print(os.getenv("OPENAI_API_KEY"))
+client = OpenAI()
 app = FastAPI()
 
 app.add_middleware(
@@ -62,12 +67,6 @@ def analyse_endpoint(analyse_input: AnalyseTexteInput):
     tokens = [word for word in tokens if word not in stop_words]
     print(tokens)
 
-
-    
-
-
-    
-
     #Stemmer & Lemmatization
     
     #porter = PorterStemmer()
@@ -76,6 +75,15 @@ def analyse_endpoint(analyse_input: AnalyseTexteInput):
     #stemmed_words = [porter.stem(word) for word in tokens]
     lemmatized_words = [lemmatizer.lemmatize(word) for word in tokens]
     print(lemmatized_words)
+
+    completion = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {"role": "system", "content": "You are a computer science university "},
+        {"role": "assistant", "content": "you are speicalized in AI, machine learning and deeplearnning..."},
+        {"role": "user", "content": " ".join(lemmatized_words)},
+    ]
+    )
 
     return {"msg": analyse_input}
 if __name__ == "__main__":
